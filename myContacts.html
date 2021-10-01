@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang = "en">
+  <head>
+    <title>Orion Grebe's Contacts</title>
+    <meta charset = "utf-8" />
+    <meta name="viewport" content="initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script>
+
+      // the slideshow
+      var curr = 0;
+      var timer;
+      var photos = new Array(4);
+      photos[0] = "2.png";
+      photos[1] = "3.png";
+      photos[2] = "4.png";
+      photos[3] = "1.png";
+      // sets the new slideshow pic
+      function slideshow() {
+        curr++;
+        if(curr > 3) {
+          curr = 0;
+        }
+        document.getElementById('slide').src = photos[curr];
+      }
+      // shows the other option if selected
+      function show(select) {
+        if(select.value=='other'){
+          document.getElementById('otherval').disabled = false;
+         } else{
+          document.getElementById('otherval').disabled = true;
+         }
+      }
+      // begins the timer
+      function setTimer() {
+        curr = 0;
+        if(timer == null) {
+          slideshow();
+        }
+        timer = setInterval('slideshow()',4000);
+      }
+      // stops the timer
+      function stopTimer() {
+        curr = 0;
+        clearInterval(timer);
+        timer = null;
+      }
+    </script>
+  </head>
+  <body>
+    <div id = "title_container">
+    </div>
+    <h2 id = "title">MY CONTACTS</h2>
+    <div id = "navbar">
+      <ul>
+        <li><a href="myContacts.html"> CONTACTS</a></li>
+        <li><a href="myWidgets.html"> WIDGETS</a></li>
+        <li><a href="myForm.html"
+              onclick="window.open('myForm.html','popup','width=320,height=500'); return false;">
+              FORM</a></li>
+      </ul>
+    </div>
+
+    <p id = "navpadding">
+
+    <table id = "contacts">
+      <tr>
+        <th><b>Name</b></th>
+        <th><b>Email</b></th>
+        <th><b>Address</b></th>
+        <th><b>Phone Number</b></th>
+        <th><b>Favorite Place</b></th>
+      </tr>
+      <tr>
+        <td>Becca Clark
+          <p>
+            <img id="becca" src = "2.png" alt = "Rebecca Clark">
+          </p>
+        </td>
+        <td>rebecca.clark@hotmail.com</td>
+        <td><p id = "becca_address" class = "adds">206 Church St SE, Minneapolis, MN 55455</p></td>
+        <td>507-666-6666</td>
+        <td><a href=https://www.ci.lake-city.mn.us>Lake City</a></td>
+      </tr>
+      <tr>
+        <td>Skylar Ringuette
+          <p>
+            <img id="skylar" src = "3.png" alt = "Skylar Ringuette">
+          </p>
+        </td>
+        <td>ringuette.skylar@gmail.com</td>
+        <td><p  class = "adds" id = "skylar_address">300 Washington Ave SE, Minneapolis, MN 55455</p></td>
+        <td>507-420-6969</td>
+        <td><a href=http://www.gamesbyjames.com/index.php>Games by James</a></td>
+      </tr>
+      <tr>
+        <td>Ursula Mayr
+          <p>
+            <img id="mother" src = "4.png" alt = "Ursula Mayr">
+          </p>
+        </td>
+        <td>mayrurusla@hotmail.com</td>
+        <td><p class = "adds" id = "mother_address">200 Union St SE, Minneapolis, MN 55455</p></td>
+        <td>507-250-2021</td>
+        <td><a href=https://www.wellingtonnz.com>Wellington, NZ</a></td>
+      </tr>
+    </table>
+
+    <div id = "slideshow">
+      <img src = "2.png" alt = "slideshow" id = "slide"/>
+    </div>
+    <div id = "controls">
+      <button class = "controls" onclick = "stopTimer()" id = "stop">Stop</button>
+      <button class = "controls" onclick = "setTimer()" id = "start">Start</button>
+    </div>
+
+    <div id = "padding"></div>
+
+    <div id="map"></div>
+    <div id="right-panel"></div>
+
+    <div id="map-form">
+      <form id = "form-container" class = "form-container" method="get">
+        Find
+        <select id = "places" name="places" onchange = "show(this)">
+          <option value ="restaurant">Restaurant</option>
+          <option value="hospital">Hospital</option>
+          <option value="parking">Parking</option>
+          <option value="supermarket">Supermarket</option>
+          <option value="other">Other</option>
+        </select>
+        <br>
+        <br>
+        In
+        <input type = "text"
+        name = "radius"
+        id = "radius"
+        pattern="[0-9]{1,}$" title="Please give a valid radius"
+        required> meters
+        <br>
+        <br>
+        Other Option
+        <br>
+          <input type = "text"
+          name = "other"
+          id = "otherval"
+          pattern="[A-Za-z]{2,}$" title="Please give a valid search item"
+          required
+          disabled>
+          <br>
+          <br>
+        <button type="button" onclick="search();">Search</button>
+      </form>
+    </div>
+
+    <div id="map-directions-form">
+      <form id = "form-directions-container" class = "form-container" method="get">
+        Destination
+        <input id = "dest" type = "text" required></input>
+        <br>
+        Transpotation Type
+        <br>
+          <input id = "driving" type="radio" name="transport" value="driving" checked> DRIVING</input>
+          <br>
+          <input id = "walking" type="radio" name="transport" value="walking"> WALKING</input>
+          <br>
+          <input id = "transit" type="radio" name="transport" value="transit"> TRANSIT</input>
+          <br>
+      </form>
+      <button id = "navigate" onclick="navigate();">Go</button>
+    </div>
+
+    <script>
+    // google map variables
+    var map;
+    var geocoder;
+    var service;
+    var infoWindow;
+    var directionsRenderer;
+    var directionsService;
+    // user position
+    var pos = {lat: 0, lng:0};
+    // list of markers on the map
+    var markers = [];
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 44.9727, lng: -93.23540000000003},
+        zoom: 14.3
+      });
+      directionsRenderer = new google.maps.DirectionsRenderer;
+      directionsService = new google.maps.DirectionsService;
+      infoWindow = new google.maps.InfoWindow;
+      geocoder = new google.maps.Geocoder();
+      // Done via help from the google developers guide for directions
+      // Gets the location of the user.
+      // https://developers.google.com/maps/documentation/javascript/directions
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+        }, function() {
+          handleLocationError(true, infoWindow, map.getCenter());
+        });
+      } else {
+        // Browser doesn't support Geolocation
+        handleLocationError(false, infoWindow, map.getCenter());
+      }
+      // sets up navigation
+      directionsRenderer.setMap(map);
+      directionsRenderer.setPanel(document.getElementById('right-panel'));
+      codeAddresses();
+    }
+
+    // extracts the addresses from table
+    function codeAddresses() {
+      // mother address
+      var address1 = document.getElementById("mother_address").innerHTML;
+      // skylar address
+      var address2 = document.getElementById("skylar_address").innerHTML;
+      // becca address
+      var address3 = document.getElementById("becca_address").innerHTML;;
+      for(var i = 0; i < 3; i++) {
+        if(i == 0) {
+          geocode(address1);
+        } else if(i == 1) {
+          geocode(address2);
+        } else {
+          geocode(address3);
+        }
+      }
+    }
+
+    // geocodes addresses
+    function geocode(address) {
+      geocoder.geocode( {'address': address}, function(results, status) {
+        if (status == 'OK') {
+          createAddMarker(results[0], address);
+        } else {
+          alert('Geocode was not successful for the following reason: ' + status);
+        }
+      });
+    }
+
+    // creates markers for every result from a search
+    function callback(results, status) {
+      if (status == google.maps.places.PlacesServiceStatus.OK) {
+        for (var i = 0; i < results.length; i++) {
+          createMarker(results[i]);
+        }
+      }
+    }
+
+    // creates a marker for searched location
+    function createMarker(place) {
+      var image = "green.png";
+      var marker = new google.maps.Marker({
+        icon: image,
+        map: map,
+        position: place.geometry.location
+      });
+      google.maps.event.addListener(marker, 'mouseover', function() {
+        infoWindow.setContent(place.name);
+        infoWindow.open(map, this);
+      });
+      markers.push(marker);
+    }
+
+    // creates a marker for contact locations
+    function createAddMarker(place, address) {
+      var image = "red.png";
+      var marker = new google.maps.Marker({
+        icon: image,
+        map: map,
+        position: place.geometry.location
+      });
+      google.maps.event.addListener(marker, 'mouseover', function() {
+        infoWindow.setContent(address);
+        infoWindow.open(map, this);
+      });
+      markers.push(marker);
+    }
+
+    // clears markers from the map
+    function clearOverlays() {
+      for (var i = 0; i < markers.length; i++ ) {
+        markers[i].setMap(null);
+      }
+      markers.length = 0;
+    }
+
+    // https://developers.google.com/maps/documentation/javascript/directions
+    function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+      infoWindow.setPosition(pos);
+      infoWindow.setContent(browserHasGeolocation ?
+                            'Error: The Geolocation service failed.' :
+                            'Error: Your browser doesn\'t support geolocation.');
+      infoWindow.open(map);
+    }
+
+    // searches based off the form criteria above
+    function search() {
+      // clear map
+      clearOverlays();
+      // get the type of search and the radius
+      var rad = document.getElementById('radius').value;
+      var typ = document.getElementById('places').value;
+      service = new google.maps.places.PlacesService(map);
+      var request;
+      // if the type is other, we look using a keyword rather than type
+      if(typ == 'other') {
+        var key = document.getElementById('otherval').value;
+        request = {
+          location: pos,
+          radius: rad,
+          keyword: key
+        };
+      } else {
+        request = {
+          location: pos,
+          radius: rad,
+          type: [typ]
+        };
+
+      }
+      service.nearbySearch(request, callback);
+    }
+
+    // navigates from the users location to a destination
+    // https://developers-dot-devsite-v2-prod.appspot.com/maps/documentation/javascript/examples/directions-panel
+    function navigate() {
+      clearOverlays();
+      var dest = document.getElementById('dest').value;
+      // our default is driving
+      var travel = 'DRIVING';
+      var walking = document.getElementById('walking');
+      var transit = document.getElementById('transit');
+      if(walking.checked == true) {
+        travel = 'WALKING';
+      } else if(transit.checked == true) {
+        travel = 'TRANSIT';
+      }
+      if(pos.lat != 0 && pos.lng != 0) {
+        directionsService.route({
+          origin: pos,
+          destination: dest,
+          travelMode: travel
+        }, function(response, status) {
+          if (status === 'OK') {
+            var panel = document.getElementById("right-panel").style.backgroundColor ="white";
+            directionsRenderer.setDirections(response);
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        });
+      } else {
+          var err_pos = {
+            lat: 44.9727,
+            lng: -93.23540000000003
+          };
+          infoWindow.setContent('Error, location unable to be found.');
+          infoWindow.open(map);
+          infoWindow.setPosition(err);
+      }
+    }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzeHROu85JTPLcLghRQYz0jEpSGwEbXgY&libraries=places&callback=initMap"
+    async defer></script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang = "en">
+  <head>
+    <meta charset = "utf-8" />
+    <meta name="viewport" content="initial-scale=1.0"/>
+    <title>My Form</title>
+    <style>
+      #map {
+        width:300px;
+        height:300px;
+      }
+      .title {
+        font-weight: bold;
+      }
+      #infowindow-content {
+        display: none;
+      }
+      #map #infowindow-content {
+        display: inline;
+      }
+    </style>
+    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAzeHROu85JTPLcLghRQYz0jEpSGwEbXgY&libraries=places&callback=initMap&sensor=true"
+    async defer></script>
+  </head>
+  <body>
+    <div class="form-popup" id="myForm">
+      <form action="http://localhost:9001" class = "form-container" method="post">
+        Name
+          <input type = "text"
+          name = "name"
+          pattern = "^(?:\S)+[A-Za-z0-9].{2,}+[^\s]$"
+          title="Name must be alphanumeric"
+          required>
+        <br>
+        Email
+          <input type = "email"
+          placeholder = "name@domain.com"
+          name = "email"
+          pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Please give a valid email address"
+          required>
+        <br>
+        Address
+        <input id="address"
+          name ="address"
+          type="text"
+          required>
+        <br>
+        Favorite Place
+          <input type= "text"
+          name = "place"
+          pattern = "^(?:\S)+[A-Za-z0-9,].{2,}+[^\s]$"
+          required>
+        <br>
+        URL for Favorite Place
+          <input type= "url"
+          name = "url"
+          placeholder = "Enter valid URL"
+          required>
+        <br>
+        <input type = "submit" value = "Submit">
+      </form>
+    </div>
+    <div id="map"></div>
+    <script>
+      var geocoder;
+      var infowindow;
+      function initMap() {
+        var origin = {lat: 44.9727, lng: -93.23540000000003};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 14,
+          center: origin
+        });
+        geocoder = new google.maps.Geocoder;
+        infowindow = new google.maps.InfoWindow;
+        map.addListener('click', function(e) {
+          placeMarkerAndPanTo(e.latLng, map);
+        });
+
+      }
+
+      function placeMarkerAndPanTo(latLng, map) {
+        var marker = new google.maps.Marker({
+          position: latLng,
+          map: map
+        });
+        map.panTo(latLng);
+        geocodeLatLng(latLng);
+      }
+      function geocodeLatLng(latLng) {
+        geocoder.geocode({'location': latLng}, function(results, status) {
+          if (status === 'OK') {
+            if (results[0]) {
+              var address = document.getElementById('address');
+              address.value = results[0].formatted_address;
+              infowindow.setContent(results[0].formatted_address);
+              infowindow.open(map, marker);
+            } else {
+              window.alert('No results found');
+            }
+          } else {
+            window.alert('Geocoder failed due to: ' + status);
+          }
+        });
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzeHROu85JTPLcLghRQYz0jEpSGwEbXgY&libraries=places&callback=initMap"></script>
+  </body>
+</html>
